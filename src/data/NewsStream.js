@@ -8,7 +8,8 @@ const RSS_FEEDS = [
   "https://www.mk.co.kr/rss/30100041/",                                                  // 매일경제 - 경제
   "https://www.mk.co.kr/rss/30200030/",                                                  // 매일경제 - 정치
   "https://rss.hankookilbo.com/daily/all.xml",                                           // 한국일보 - 전체
-  "https://news.google.com/rss/search?q=site:twitter.com+OR+site:x.com+when:1d&hl=ko&gl=KR&ceid=KR:ko" // X (Twitter 트렌드)
+  "https://news.google.com/rss/search?q=KOSPI&hl=ko&gl=KR&ceid=KR:ko",                    // KOSPI (English Search)
+  "https://news.google.com/rss/search?q=%EC%BD%94%EC%8A%A4%ED%94%BC&hl=ko&gl=KR&ceid=KR:ko" // 코스피 (Korean Search)
 ];
 
 // Simple keyword-based sentiment analyzer for Korean
@@ -67,10 +68,6 @@ export class NewsStream {
 
         this.realNewsBuffer = filteredItems.map(item => {
           let title = item.title;
-          if (item._feedUrl.includes("twitter.com") || item._feedUrl.includes("x.com")) {
-             // Remove " - Google 뉴스" or similar postfix if present
-             title = "[X 실시간] " + title.replace(/ - Google 뉴스.*/, "");
-          }
           return {
             title: title,
             impact: analyzeSentiment(item.title + " " + item.content),
@@ -88,7 +85,8 @@ export class NewsStream {
 
   categorize(text) {
     const t = text.toLowerCase();
-    if (t.includes("경제") || t.includes("금리") || t.includes("시장") || t.includes("환율")) return "금융";
+    if (t.includes("경제") || t.includes("금리") || t.includes("시장") || t.includes("환율") || 
+        t.includes("코스피") || t.includes("kospi") || t.includes("증시") || t.includes("지수")) return "금융";
     if (t.includes("국정") || t.includes("정부") || t.includes("정치") || t.includes("전쟁")) return "지정학";
     if (t.includes("사회") || t.includes("환경") || t.includes("시민")) return "사회";
     if (t.includes("과학") || t.includes("기술") || t.includes("메타") || t.includes("AI")) return "과학";
