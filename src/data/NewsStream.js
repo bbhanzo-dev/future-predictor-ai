@@ -93,6 +93,25 @@ export class NewsStream {
     return "사회";
   }
 
+  async fetchStockNews(stockName) {
+    try {
+      const feedUrl = `https://news.google.com/rss/search?q=${stockName}+주식&hl=ko&gl=KR&ceid=KR:ko`;
+      const res = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(feedUrl)}`);
+      const data = await res.json();
+      if (!data.items || data.items.length === 0) return [];
+      return data.items.slice(0, 15).map(item => ({
+        title: item.title.replace(/ - Google 뉴스.*/, ''),
+        impact: analyzeSentiment(item.title + ' ' + (item.content || '')),
+        type: this.categorize(item.title + ' ' + (item.content || '')),
+        id: item.guid || Math.random().toString(36),
+        timestamp: new Date().toLocaleTimeString()
+      }));
+    } catch (err) {
+      console.error('종목 뉴스 수집 실패:', err);
+      return [];
+    }
+  }
+
   async generateNext() {
     if (this.realNewsBuffer.length === 0) {
       await this.fetchRealNews();
