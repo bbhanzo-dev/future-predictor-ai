@@ -61,6 +61,7 @@ export const savePrediction = async (summary) => {
  * @returns {Array} sorted by createdAt desc
  */
 export const loadPredictions = async () => {
+  // 1차: orderBy 정렬 쿼리 시도
   try {
     const q = query(
       collection(db, PREDICTIONS_COLLECTION),
@@ -70,8 +71,19 @@ export const loadPredictions = async () => {
     const snap = await getDocs(q);
     return snap.docs.map(d => ({ id: d.id, ...d.data() }));
   } catch (err) {
-    console.error("예측 불러오기 실패:", err);
-    return [];
+    console.warn("정렬 쿼리 실패 (인덱스 미생성 가능), 비정렬 조회로 폴백:", err.message);
+  }
+
+  // 2차 폴백: orderBy 없이 전체 조회 후 클라이언트 정렬
+  try {
+    const snap = await getDocs(collection(db, PREDICTIONS_COLLECTION));
+    const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    return docs
+      .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))
+      .slice(0, 20);
+  } catch (err2) {
+    console.error("예측 불러오기 최종 실패:", err2);
+    throw err2; // 컴포넌트에서 에러 상태로 표시
   }
 };
 
@@ -97,15 +109,28 @@ export const updateActualResult = async (predictionId, actualResult) => {
 };
 
 /**
- * Determine if a prediction was "correct" given the actual result.
- * - STRONG BUY / BUY  → correct if outcome is '상승'
- * - STRONG SELL / SELL → correct if outcome is '하락'
- * - HOLD / 관망        → correct if outcome is '횡보'
+ * 5단계 결과 기준 적중 판정.
+ * - success(매수): 강한상승·상승 → 적중
+ * - danger(매도):  강한하락·하락 → 적중
+ * - neutral(관망): 횡보 → 적중
+ * @returns {boolean|null} null = 결과 미입력
  */
 export const isPredictionCorrect = (signalType, actualOutcome) => {
   if (!actualOutcome) return null;
-  if (signalType === 'success' && actualOutcome === '상승') return true;
-  if (signalType === 'danger'  && actualOutcome === '하락') return true;
-  if (signalType === 'neutral' && actualOutcome === '횡보') return true;
+  if (signalType === 'success') return actualOutcome === '강한상승' || actualOutcome === '상승';
+  if (signalType === 'danger')  return actualOutcome === '강한하락' || actualOutcome === '하락';
+  if (signalType === 'neutral') return actualOutcome === '횡보';
   return false;
+};
+
+/**
+ * 5단계 결과 → 색상 분류
+ */
+export const outcomeColorClass = (outcome) => {
+  if (outcome === '강한상승') return 'strong-pos';
+  if (outcome === '상승')     return 'pos';
+  if (outcome === '횡보')     return '';
+  if (outcome === '하락')     return 'neg';
+  if (outcome === '강한하락') return 'strong-neg';
+  return '';
 };

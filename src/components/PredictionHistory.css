@@ -98,10 +98,17 @@
 .pred-history-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
+  gap: 12px;
 }
 
-.pred-history-header h3 {
+.pred-header-left {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.pred-header-left h3 {
   font-size: 0.85rem;
   color: var(--accent-secondary);
   margin: 0;
@@ -109,18 +116,69 @@
   letter-spacing: 1px;
 }
 
+.pred-header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
 .pred-stats {
   display: flex;
-  gap: 14px;
-  font-size: 0.7rem;
+  gap: 10px;
+  font-size: 0.68rem;
   color: var(--text-dim);
 }
 
 .pred-stats b { color: var(--text-main); }
 
-.acc-text.good { color: var(--pos-color); }
-.acc-text.mid  { color: #ffc800; }
-.acc-text.bad  { color: var(--neg-color); }
+/* 적중률 디스플레이 블록 */
+.pred-accuracy-display {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-weight: 700;
+}
+
+.pred-accuracy-display.good {
+  background: rgba(77, 255, 136, 0.12);
+  border: 1px solid var(--pos-color);
+  color: var(--pos-color);
+}
+.pred-accuracy-display.mid {
+  background: rgba(255, 200, 0, 0.12);
+  border: 1px solid #ffc800;
+  color: #ffc800;
+}
+.pred-accuracy-display.bad {
+  background: rgba(255, 77, 77, 0.12);
+  border: 1px solid var(--neg-color);
+  color: var(--neg-color);
+}
+
+.acc-label {
+  font-size: 0.6rem;
+  font-weight: 400;
+  opacity: 0.8;
+}
+
+.acc-value {
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.acc-fraction {
+  font-size: 0.6rem;
+  opacity: 0.7;
+}
+
+.pred-acc-empty {
+  font-size: 0.62rem;
+  color: var(--text-dim);
+  font-style: italic;
+}
 
 .pred-loading {
   font-size: 0.75rem;
@@ -209,14 +267,15 @@
 }
 
 .pred-accuracy-badge {
-  font-size: 0.65rem;
+  font-size: 0.68rem;
   font-weight: 700;
-  padding: 2px 8px;
+  padding: 3px 9px;
   border-radius: 10px;
+  letter-spacing: 0.2px;
 }
 
-.pred-accuracy-badge.hit  { background: rgba(77, 255, 136, 0.15); color: var(--pos-color); }
-.pred-accuracy-badge.miss { background: rgba(255, 77, 77, 0.15);  color: var(--neg-color); }
+.pred-accuracy-badge.hit  { background: rgba(77, 255, 136, 0.15); color: var(--pos-color);  border: 1px solid rgba(77,255,136,0.3); }
+.pred-accuracy-badge.miss { background: rgba(255, 77, 77, 0.15);  color: var(--neg-color);  border: 1px solid rgba(255,77,77,0.3); }
 
 .pred-signals {
   display: flex;
@@ -257,7 +316,7 @@
   align-items: center;
   gap: 8px;
   font-size: 0.7rem;
-  padding-top: 4px;
+  padding-top: 6px;
   border-top: 1px solid rgba(255, 255, 255, 0.06);
 }
 
@@ -269,21 +328,30 @@
   font-weight: 700;
 }
 
-.pred-actual-outcome.pos { color: var(--pos-color); }
-.pred-actual-outcome.neg { color: var(--neg-color); }
+.pred-actual-outcome.strong-pos { color: #00ff6a; }
+.pred-actual-outcome.pos        { color: var(--pos-color); }
+.pred-actual-outcome.neg        { color: var(--neg-color); }
+.pred-actual-outcome.strong-neg { color: #ff1a1a; }
 
 /* ── 실제 결과 입력 폼 ── */
 .pred-result-input {
   display: flex;
   align-items: center;
   gap: 6px;
-  padding-top: 4px;
+  padding-top: 6px;
   border-top: 1px solid rgba(255, 255, 255, 0.06);
   flex-wrap: wrap;
 }
 
-.pred-result-label {
-  font-size: 0.65rem;
+/* 등락률 입력 + 기준 텍스트 묶음 */
+.pred-change-wrap {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.pred-change-unit {
+  font-size: 0.6rem;
   color: var(--text-dim);
   white-space: nowrap;
 }

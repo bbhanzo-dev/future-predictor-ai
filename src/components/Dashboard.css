@@ -297,6 +297,113 @@
 .news-impact span.pos { color: var(--pos-color); }
 .news-impact span.neg { color: var(--neg-color); }
 
+/* 종목 분석 중 배너 */
+.analyzing-badge {
+  color: var(--accent-secondary);
+  animation: blink 1.2s infinite;
+}
+
+/* 종목 뉴스 로딩 */
+.stock-loading-msg {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--accent-secondary);
+}
+
+.loading-spinner {
+  display: inline-block;
+  animation: spin 1s linear infinite;
+  font-size: 1.1rem;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* 뉴스 섹션 구분선 */
+.news-section-label {
+  font-size: 0.62rem;
+  color: var(--accent-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  padding: 8px 15px 4px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-top: 1px solid rgba(0, 242, 255, 0.1);
+}
+
+.news-section-label:first-child {
+  border-top: none;
+}
+
+.irrelevant-label {
+  color: var(--text-dim);
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* 관련도 낮은 뉴스 — 흐리게 표시 */
+.news-item-dim {
+  opacity: 0.45;
+  filter: grayscale(30%);
+  transition: opacity 0.2s;
+}
+
+.news-item-dim:hover {
+  opacity: 0.8;
+}
+
+/* 펼치기 버튼 */
+.show-irrelevant-btn {
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.15);
+  color: var(--text-dim);
+  font-size: 0.6rem;
+  padding: 1px 7px;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-left: auto;
+}
+
+.show-irrelevant-btn:hover {
+  border-color: var(--accent-secondary);
+  color: var(--accent-secondary);
+}
+
+/* 뉴스 필터 토글 버튼 */
+.news-filter-toggle {
+  background: transparent;
+  border: 1px solid rgba(0,242,255,0.3);
+  color: var(--accent-secondary);
+  font-size: 0.62rem;
+  padding: 2px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.news-filter-toggle:hover {
+  background: rgba(0,242,255,0.08);
+}
+
+/* 검색 초기화 버튼 (뉴스 패널 헤더) */
+.news-clear-btn {
+  background: transparent;
+  border: 1px solid rgba(255,77,77,0.3);
+  color: var(--neg-color);
+  font-size: 0.62rem;
+  padding: 2px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  opacity: 0.7;
+}
+
+.news-clear-btn:hover {
+  opacity: 1;
+  background: rgba(255,77,77,0.08);
+}
+
 .live-indicator {
   font-size: 0.65rem;
   background: var(--neg-color);

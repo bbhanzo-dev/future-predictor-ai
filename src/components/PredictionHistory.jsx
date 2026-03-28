@@ -5,7 +5,17 @@ import {
   loadPredictions,
   updateActualResult,
   isPredictionCorrect,
+  outcomeColorClass,
 } from '../firebase/predictionService';
+
+// 5단계 결과 옵션
+const OUTCOME_OPTIONS = [
+  { value: '강한상승', label: '강한상승 (+3%↑)' },
+  { value: '상승',     label: '상승 (+1~3%)' },
+  { value: '횡보',     label: '횡보 (±1%)' },
+  { value: '하락',     label: '하락 (-1~3%)' },
+  { value: '강한하락', label: '강한하락 (-3%↓)' },
+];
 
 /**
  * PredictionHistory
@@ -99,14 +109,22 @@ const PredictionHistory = ({ currentSummary }) => {
       {isOpen && (
         <div className="pred-history-panel">
           <div className="pred-history-header">
-            <h3>분석 히스토리</h3>
-            <div className="pred-stats">
-              <span>총 <b>{predictions.length}</b>건</span>
-              <span>결과 입력 <b>{judged.length}</b>건</span>
-              {accuracy !== null && (
-                <span className={`acc-text ${accuracy >= 60 ? 'good' : accuracy >= 40 ? 'mid' : 'bad'}`}>
-                  적중률 <b>{accuracy}%</b> ({correct.length}/{judged.length})
-                </span>
+            <div className="pred-header-left">
+              <h3>분석 히스토리</h3>
+              <div className="pred-stats">
+                <span>총 <b>{predictions.length}</b>건</span>
+                <span>결과 입력 <b>{judged.length}</b>건</span>
+              </div>
+            </div>
+            <div className="pred-header-right">
+              {accuracy !== null ? (
+                <div className={`pred-accuracy-display ${accuracy >= 60 ? 'good' : accuracy >= 40 ? 'mid' : 'bad'}`}>
+                  <span className="acc-label">적중률</span>
+                  <span className="acc-value">{accuracy}%</span>
+                  <span className="acc-fraction">{correct.length}/{judged.length}</span>
+                </div>
+              ) : (
+                <span className="pred-acc-empty">결과 입력 후 적중률 표시</span>
               )}
               <button className="pred-refresh-btn" onClick={fetchPredictions} title="새로고침">↻</button>
             </div>
@@ -132,7 +150,7 @@ const PredictionHistory = ({ currentSummary }) => {
                       </div>
                       {correct !== null && (
                         <span className={`pred-accuracy-badge ${correct ? 'hit' : 'miss'}`}>
-                          {correct ? '적중' : '빗나감'}
+                          {correct ? '✅ 적중' : '❌ 미적중'}
                         </span>
                       )}
                     </div>
@@ -154,7 +172,7 @@ const PredictionHistory = ({ currentSummary }) => {
                     {pred.actualResult ? (
                       <div className="pred-actual">
                         <span className="pred-actual-label">실제 결과:</span>
-                        <span className={`pred-actual-outcome ${pred.actualResult.outcome === '상승' ? 'pos' : pred.actualResult.outcome === '하락' ? 'neg' : ''}`}>
+                        <span className={`pred-actual-outcome ${outcomeColorClass(pred.actualResult.outcome)}`}>
                           {pred.actualResult.outcome}
                           {pred.actualResult.change !== 0 && (
                             <> ({pred.actualResult.change > 0 ? '+' : ''}{pred.actualResult.change}%)</>
@@ -163,25 +181,27 @@ const PredictionHistory = ({ currentSummary }) => {
                       </div>
                     ) : (
                       <div className="pred-result-input">
-                        <span className="pred-result-label">실제 결과 입력:</span>
                         <select
                           className="pred-select"
                           value={input.outcome || ''}
                           onChange={e => handleInputChange(pred.id, 'outcome', e.target.value)}
                         >
-                          <option value="">결과 선택</option>
-                          <option value="상승">상승</option>
-                          <option value="하락">하락</option>
-                          <option value="횡보">횡보</option>
+                          <option value="">결과 선택 (5단계)</option>
+                          {OUTCOME_OPTIONS.map(o => (
+                            <option key={o.value} value={o.value}>{o.label}</option>
+                          ))}
                         </select>
-                        <input
-                          className="pred-change-input"
-                          type="number"
-                          placeholder="등락률 %"
-                          step="0.1"
-                          value={input.change || ''}
-                          onChange={e => handleInputChange(pred.id, 'change', e.target.value)}
-                        />
+                        <div className="pred-change-wrap">
+                          <input
+                            className="pred-change-input"
+                            type="number"
+                            placeholder="등락률"
+                            step="0.1"
+                            value={input.change || ''}
+                            onChange={e => handleInputChange(pred.id, 'change', e.target.value)}
+                          />
+                          <span className="pred-change-unit">% (코스피 기준)</span>
+                        </div>
                         <button
                           className="pred-submit-btn"
                           onClick={() => handleResultSubmit(pred)}

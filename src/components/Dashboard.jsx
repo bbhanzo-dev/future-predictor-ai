@@ -14,6 +14,15 @@ import AIAssistant from './AIAssistant';
 import { analyzeStockByAgents } from '../engine/StockAgentAnalyzer';
 import PredictionHistory from './PredictionHistory';
 
+// 뉴스 제목이 종목명과 관련 있는지 판단
+const isNewsRelevant = (title, stockName) => {
+  if (!stockName || !title) return true;
+  const t = title.toLowerCase();
+  // 종목명을 공백 기준으로 쪼개서 각 파트 포함 여부 확인 (2글자 이상만)
+  const parts = stockName.toLowerCase().split(/\s+/).filter(p => p.length >= 2);
+  return parts.some(part => t.includes(part));
+};
+
 const Dashboard = () => {
   const [world, setWorld] = useState(null);
   const [news, setNews] = useState([]);
@@ -28,6 +37,7 @@ const Dashboard = () => {
   const [stockNews, setStockNews] = useState([]);
   const [stockAnalysis, setStockAnalysis] = useState(null);
   const [isLoadingStock, setIsLoadingStock] = useState(false);
+  const [showIrrelevant, setShowIrrelevant] = useState(false); // 관련 없는 뉴스 표시 토글
 
   const worldRef = useRef(null);
   const newsStreamRef = useRef(new NewsStream());
@@ -125,6 +135,7 @@ const Dashboard = () => {
     setIsLoadingStock(true);
     setStockNews([]);
     setStockAnalysis(null);
+    setShowIrrelevant(false);
     const fetchedNews = await newsStreamRef.current.fetchStockNews(stock.name);
     setStockNews(fetchedNews);
     if (worldRef.current) {
@@ -139,6 +150,7 @@ const Dashboard = () => {
     setSelectedStock(null);
     setStockNews([]);
     setStockAnalysis(null);
+    setShowIrrelevant(false);
   };
 
   const toggleSimulation = () => {
@@ -245,34 +257,102 @@ const Dashboard = () => {
 
         <section className="panel news-panel">
           <div className="panel-header">
-            <h2>{selectedStock ? `${selectedStock.name} 종목 뉴스` : '실시간 마켓 데이터 주입'}</h2>
-            <div className="live-indicator">라이브</div>
+            <h2>
+              {selectedStock
+                ? isLoadingStock
+                  ? <span className="analyzing-badge">🔍 {selectedStock.name} 분석 중...</span>
+                  : `${selectedStock.name} 종목 뉴스`
+                : '실시간 마켓 데이터 주입'}
+            </h2>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              {selectedStock && !isLoadingStock && stockNews.length > 0 && (
+                <button
+                  className="news-filter-toggle"
+                  onClick={() => setShowIrrelevant(v => !v)}
+                  title={showIrrelevant ? '관련 뉴스만 보기' : '전체 뉴스 보기'}
+                >
+                  {showIrrelevant ? '관련만' : '전체'}
+                </button>
+              )}
+              {selectedStock && (
+                <button className="news-clear-btn" onClick={clearStock} title="검색 초기화">✕ 초기화</button>
+              )}
+              <div className="live-indicator">라이브</div>
+            </div>
           </div>
           <div className="news-feed">
             {selectedStock ? (
               isLoadingStock ? (
-                <div className="news-empty">종목 뉴스 로딩 중...</div>
+                <div className="news-empty stock-loading-msg">
+                  <span className="loading-spinner">⟳</span>
+                  {selectedStock.name} 관련 뉴스를 수집하고 있습니다...
+                </div>
               ) : stockNews.length === 0 ? (
                 <div className="news-empty">관련 뉴스를 찾을 수 없습니다.</div>
               ) : (
-                stockNews.map((item, i) => (
-                  <div key={item.id || i} className={`news-item ${item.type || 'social'}`}>
-                    <div className="news-meta">
-                      <span className="news-type">{
-                          item.type === '금융' ? '금융지표' :
-                          item.type === '지정학' ? '정치/국방' :
-                          item.type === '과학' ? '기술혁신' : '사회동향'
-                      }</span>
-                      <span className="news-time">{item.timestamp}</span>
-                    </div>
-                    <p className="news-title">{item.title}</p>
-                    <div className="news-impact">
-                      종목 영향력: <span className={(item.impact || 0) >= 0 ? 'pos' : 'neg'}>
-                        {((item.impact || 0) * 100).toFixed(1)}%
-                      </span>
-                    </div>
-                  </div>
-                ))
+                (() => {
+                  const relevant = stockNews.filter(item => isNewsRelevant(item.title, selectedStock.name));
+                  const irrelevant = stockNews.filter(item => !isNewsRelevant(item.title, selectedStock.name));
+                  const displayed = showIrrelevant ? stockNews : stockNews;
+
+                  return (
+                    <>
+                      {relevant.length > 0 && (
+                        <div className="news-section-label">
+                          직접 관련 뉴스 {relevant.length}건
+                        </div>
+                      )}
+                      {relevant.map((item, i) => (
+                        <div key={item.id || i} className={`news-item ${item.type || 'social'}`}>
+                          <div className="news-meta">
+                            <span className="news-type">{
+                              item.type === '금융' ? '금융지표' :
+                              item.type === '지정학' ? '정치/국방' :
+                              item.type === '과학' ? '기술혁신' : '사회동향'
+                            }</span>
+                            <span className="news-time">{item.timestamp}</span>
+                          </div>
+                          <p className="news-title">{item.title}</p>
+                          <div className="news-impact">
+                            종목 영향력: <span className={(item.impact || 0) >= 0 ? 'pos' : 'neg'}>
+                              {((item.impact || 0) * 100).toFixed(1)}%
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                      {irrelevant.length > 0 && (
+                        <>
+                          <div className="news-section-label irrelevant-label">
+                            간접 관련 뉴스 {irrelevant.length}건
+                            {!showIrrelevant && (
+                              <button className="show-irrelevant-btn" onClick={() => setShowIrrelevant(true)}>
+                                펼치기
+                              </button>
+                            )}
+                          </div>
+                          {showIrrelevant && irrelevant.map((item, i) => (
+                            <div key={item.id || i} className={`news-item ${item.type || 'social'} news-item-dim`}>
+                              <div className="news-meta">
+                                <span className="news-type">{
+                                  item.type === '금융' ? '금융지표' :
+                                  item.type === '지정학' ? '정치/국방' :
+                                  item.type === '과학' ? '기술혁신' : '사회동향'
+                                }</span>
+                                <span className="news-time">{item.timestamp}</span>
+                              </div>
+                              <p className="news-title">{item.title}</p>
+                              <div className="news-impact">
+                                참고 영향력: <span className={(item.impact || 0) >= 0 ? 'pos' : 'neg'}>
+                                  {((item.impact || 0) * 100).toFixed(1)}%
+                                </span>
+                              </div>
+                            </div>
+                          ))}
+                        </>
+                      )}
+                    </>
+                  );
+                })()
               )
             ) : (
               news.length === 0 ? (
