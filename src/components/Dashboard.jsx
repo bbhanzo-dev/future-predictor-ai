@@ -159,7 +159,7 @@ const Dashboard = () => {
     <div className="dashboard-container">
       <header className="dashboard-header">
         <div className="title-area">
-          <h1>FUTURE PREDICTOR <span>AI</span></h1>
+          <h1>SENTINEL <span>AI</span></h1>
           <span className="version-tag">{version}</span>
         </div>
         <div className="global-stats">
@@ -181,7 +181,7 @@ const Dashboard = () => {
               className={`btn-main ${isSimulating ? 'pulse' : ''}`}
               onClick={toggleSimulation}
             >
-              {isSimulating ? '데이터 수집 중단' : '실시간 시뮬레이션 시작'}
+              {isSimulating ? '실시간 분석 중단' : '실시간 분석 시작'}
             </button>
           </div>
 
@@ -223,7 +223,7 @@ const Dashboard = () => {
           </div>
 
           <div className="forecast-box">
-            <h3>시나리오 예측</h3>
+            <h3>현재 시장 방향성</h3>
             <div className="scenario-grid">
               {currentSummary.scenarios && Object.values(currentSummary.scenarios).map((sc) => (
                 <div key={sc.horizon} className={`scenario-card ${sc.signalType}`}>

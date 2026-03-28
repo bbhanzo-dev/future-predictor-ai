@@ -18,7 +18,9 @@ const PredictionHistory = ({ currentSummary }) => {
   const [predictions, setPredictions]   = useState([]);
   const [isSaving, setIsSaving]         = useState(false);
   const [saveMsg, setSaveMsg]           = useState('');
-  const [isLoading, setIsLoading]       = useState(false);
+  // true 로 초기화 — 패널이 열리자마자 "저장 없음" 메시지가 깜빡이는 것 방지
+  const [isLoading, setIsLoading]       = useState(true);
+  const [fetchError, setFetchError]     = useState('');
 
   // 실제 결과 입력 상태 (예측 ID → { outcome, change })
   const [inputMap, setInputMap] = useState({});
@@ -26,9 +28,16 @@ const PredictionHistory = ({ currentSummary }) => {
 
   const fetchPredictions = async () => {
     setIsLoading(true);
-    const data = await loadPredictions();
-    setPredictions(data);
-    setIsLoading(false);
+    setFetchError('');
+    try {
+      const data = await loadPredictions();
+      setPredictions(data);
+    } catch (err) {
+      console.error('fetchPredictions error:', err);
+      setFetchError('데이터 불러오기 실패. Firebase 연결을 확인하세요.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -84,35 +93,13 @@ const PredictionHistory = ({ currentSummary }) => {
     type === 'success' ? '매수' : type === 'danger' ? '매도' : '관망';
 
   return (
-    <>
-      {/* 트리거 버튼 (항상 화면에 표시) */}
-      <div className="pred-trigger-bar">
-        <button
-          className={`pred-save-btn ${isSaving ? 'saving' : ''}`}
-          onClick={handleSave}
-          disabled={isSaving}
-        >
-          {isSaving ? '저장 중...' : '현재 예측 저장'}
-        </button>
-        {saveMsg && <span className="pred-save-msg">{saveMsg}</span>}
-        <button
-          className="pred-history-btn"
-          onClick={() => setIsOpen(o => !o)}
-        >
-          예측 히스토리 {isOpen ? '▲' : '▼'}
-          {judged.length > 0 && (
-            <span className={`acc-badge ${accuracy >= 60 ? 'good' : accuracy >= 40 ? 'mid' : 'bad'}`}>
-              적중률 {accuracy}%
-            </span>
-          )}
-        </button>
-      </div>
-
-      {/* 히스토리 패널 */}
+    // pred-wrapper 로 감싸서 fixed 패널의 stacking context 확보
+    <div className="pred-wrapper">
+      {/* 히스토리 패널 — position:fixed 로 overflow:hidden 부모 탈출 */}
       {isOpen && (
         <div className="pred-history-panel">
           <div className="pred-history-header">
-            <h3>예측 히스토리</h3>
+            <h3>분석 히스토리</h3>
             <div className="pred-stats">
               <span>총 <b>{predictions.length}</b>건</span>
               <span>결과 입력 <b>{judged.length}</b>건</span>
@@ -121,13 +108,16 @@ const PredictionHistory = ({ currentSummary }) => {
                   적중률 <b>{accuracy}%</b> ({correct.length}/{judged.length})
                 </span>
               )}
+              <button className="pred-refresh-btn" onClick={fetchPredictions} title="새로고침">↻</button>
             </div>
           </div>
 
           {isLoading ? (
             <div className="pred-loading">불러오는 중...</div>
+          ) : fetchError ? (
+            <div className="pred-error">{fetchError}</div>
           ) : predictions.length === 0 ? (
-            <div className="pred-loading">저장된 예측이 없습니다.<br />위 버튼으로 현재 예측을 저장하세요.</div>
+            <div className="pred-loading">저장된 분석 히스토리가 없습니다.<br />'현재 분석 저장' 버튼으로 저장하세요.</div>
           ) : (
             <div className="pred-list">
               {predictions.map(pred => {
@@ -208,7 +198,30 @@ const PredictionHistory = ({ currentSummary }) => {
           )}
         </div>
       )}
-    </>
+
+      {/* 트리거 버튼 바 */}
+      <div className="pred-trigger-bar">
+        <button
+          className={`pred-save-btn ${isSaving ? 'saving' : ''}`}
+          onClick={handleSave}
+          disabled={isSaving}
+        >
+          {isSaving ? '저장 중...' : '현재 분석 저장'}
+        </button>
+        {saveMsg && <span className="pred-save-msg">{saveMsg}</span>}
+        <button
+          className="pred-history-btn"
+          onClick={() => setIsOpen(o => !o)}
+        >
+          분석 히스토리 {isOpen ? '▲' : '▼'}
+          {judged.length > 0 && (
+            <span className={`acc-badge ${accuracy >= 60 ? 'good' : accuracy >= 40 ? 'mid' : 'bad'}`}>
+              적중률 {accuracy}%
+            </span>
+          )}
+        </button>
+      </div>
+    </div>
   );
 };
 
