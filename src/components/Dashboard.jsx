@@ -12,13 +12,14 @@ import { STOCK_LIST } from '../data/StockList';
 import InvestmentRadarChart from './InvestmentRadarChart';
 import AIAssistant from './AIAssistant';
 import { analyzeStockByAgents } from '../engine/StockAgentAnalyzer';
+import PredictionHistory from './PredictionHistory';
 
 const Dashboard = () => {
   const [world, setWorld] = useState(null);
   const [news, setNews] = useState([]);
   const [isSimulating, setIsSimulating] = useState(false);
   const [tick, setTick] = useState(0);
-  const [version] = useState("v2.1.0"); // Sector Agent Analysis
+  const [version] = useState("v2.3.0"); // Scenario Split + Prediction History
 
   // 종목 검색 상태
   const [stockQuery, setStockQuery] = useState('');
@@ -222,12 +223,22 @@ const Dashboard = () => {
           </div>
 
           <div className="forecast-box">
-            <h3>미래 시나리오 예측</h3>
-            <div className="probability-display">
-                <div className="prob-circle">
-                    <span className="prob-pct">{(currentSummary.avgSentiment > 0.5 ? 70 : 30)}%</span>
+            <h3>시나리오 예측</h3>
+            <div className="scenario-grid">
+              {currentSummary.scenarios && Object.values(currentSummary.scenarios).map((sc) => (
+                <div key={sc.horizon} className={`scenario-card ${sc.signalType}`}>
+                  <div className="scenario-horizon">{sc.horizon}</div>
+                  <div className="scenario-signal">{sc.signal}</div>
+                  <div className="scenario-prob">
+                    <div className="scenario-prob-bar">
+                      <div className="scenario-prob-fill" style={{ width: `${sc.probability}%` }} />
+                    </div>
+                    <span>{sc.probability}%</span>
+                  </div>
+                  <p className="scenario-desc">{sc.scenario}</p>
+                  <div className="scenario-basis">{sc.basis}</div>
                 </div>
-                <p className="prob-desc">{currentSummary.prediction}</p>
+              ))}
             </div>
           </div>
         </section>
@@ -400,6 +411,7 @@ const Dashboard = () => {
         </section>
       </main>
       
+      <PredictionHistory currentSummary={currentSummary} />
       <AIAssistant currentSummary={currentSummary} />
     </div>
   );

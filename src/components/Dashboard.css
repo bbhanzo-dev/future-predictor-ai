@@ -174,35 +174,94 @@
 /* Forecast Area */
 .forecast-box {
   margin-top: auto;
-  padding: 20px;
-  background: rgba(125, 64, 255, 0.1);
+  padding: 16px 18px;
+  background: rgba(125, 64, 255, 0.08);
+  border-top: 1px solid rgba(125, 64, 255, 0.2);
 }
 
-.probability-display {
+.forecast-box h3 {
+  font-size: 0.75rem;
+  color: var(--accent-secondary);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin: 0 0 12px 0;
+}
+
+/* 3분할 시나리오 그리드 */
+.scenario-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.scenario-card {
+  background: rgba(0, 0, 0, 0.25);
+  border-radius: 7px;
+  padding: 10px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.scenario-card.success { border-left: 3px solid var(--pos-color); }
+.scenario-card.danger  { border-left: 3px solid var(--neg-color); }
+.scenario-card.neutral { border-left: 3px solid var(--text-dim); }
+
+.scenario-horizon {
+  font-size: 0.6rem;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.scenario-signal {
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.scenario-card.success .scenario-signal { color: var(--pos-color); }
+.scenario-card.danger  .scenario-signal { color: var(--neg-color); }
+.scenario-card.neutral .scenario-signal { color: var(--text-main); }
+
+.scenario-prob {
   display: flex;
   align-items: center;
-  gap: 15px;
+  gap: 7px;
+  font-size: 0.65rem;
+  color: var(--text-dim);
+  font-family: 'Courier New', monospace;
 }
 
-.prob-circle {
-  width: 60px;
-  height: 60px;
-  border: 3px solid var(--accent-primary);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.prob-pct {
-  font-weight: bold;
-  color: var(--accent-primary);
-}
-
-.prob-desc {
-  font-size: 0.8rem;
+.scenario-prob-bar {
   flex: 1;
-  line-height: 1.4;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.scenario-prob-fill {
+  height: 100%;
+  background: currentColor;
+  transition: width 0.6s ease;
+}
+
+.scenario-card.success .scenario-prob-fill { background: var(--pos-color); }
+.scenario-card.danger  .scenario-prob-fill { background: var(--neg-color); }
+.scenario-card.neutral .scenario-prob-fill { background: var(--text-dim); }
+
+.scenario-desc {
+  font-size: 0.67rem;
+  color: var(--text-dim);
+  line-height: 1.45;
+  margin: 0;
+}
+
+.scenario-basis {
+  font-size: 0.58rem;
+  color: rgba(160, 160, 160, 0.55);
+  font-family: 'Courier New', monospace;
 }
 
 /* Live News Ingestion */

@@ -1,0 +1,292 @@
+/* ===== 예측 히스토리 패널 ===== */
+
+.pred-trigger-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 24px;
+  background: rgba(0, 0, 0, 0.4);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.pred-save-btn {
+  background: var(--accent-primary);
+  color: white;
+  border: none;
+  padding: 7px 18px;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.pred-save-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pred-save-btn.saving {
+  animation: pulse 1s infinite;
+}
+
+.pred-save-msg {
+  font-size: 0.72rem;
+  color: var(--pos-color);
+}
+
+.pred-history-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: var(--text-dim);
+  padding: 7px 14px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+.pred-history-btn:hover {
+  border-color: var(--accent-secondary);
+  color: var(--text-main);
+}
+
+.acc-badge {
+  font-size: 0.6rem;
+  padding: 2px 7px;
+  border-radius: 10px;
+  font-weight: 700;
+}
+
+.acc-badge.good { background: rgba(77, 255, 136, 0.15); color: var(--pos-color); }
+.acc-badge.mid  { background: rgba(255, 200, 0, 0.15);  color: #ffc800; }
+.acc-badge.bad  { background: rgba(255, 77, 77, 0.15);  color: var(--neg-color); }
+
+/* ── 히스토리 패널 ── */
+.pred-history-panel {
+  background: rgba(10, 10, 15, 0.98);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 16px 24px 20px;
+  max-height: 420px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.pred-history-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.pred-history-header h3 {
+  font-size: 0.85rem;
+  color: var(--accent-secondary);
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.pred-stats {
+  display: flex;
+  gap: 14px;
+  font-size: 0.7rem;
+  color: var(--text-dim);
+}
+
+.pred-stats b { color: var(--text-main); }
+
+.acc-text.good { color: var(--pos-color); }
+.acc-text.mid  { color: #ffc800; }
+.acc-text.bad  { color: var(--neg-color); }
+
+.pred-loading {
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  text-align: center;
+  padding: 20px;
+  line-height: 1.6;
+}
+
+/* ── 예측 카드 ── */
+.pred-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 10px;
+}
+
+.pred-card {
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 8px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.pred-card.success { border-left: 3px solid var(--pos-color); }
+.pred-card.danger  { border-left: 3px solid var(--neg-color); }
+.pred-card.neutral { border-left: 3px solid var(--text-dim); }
+
+.pred-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.pred-meta {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.pred-date {
+  font-size: 0.68rem;
+  color: var(--text-dim);
+}
+
+.pred-tick {
+  font-size: 0.6rem;
+  background: rgba(255, 255, 255, 0.06);
+  padding: 1px 5px;
+  border-radius: 4px;
+  color: var(--text-dim);
+  font-family: 'Courier New', monospace;
+}
+
+.pred-accuracy-badge {
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+.pred-accuracy-badge.hit  { background: rgba(77, 255, 136, 0.15); color: var(--pos-color); }
+.pred-accuracy-badge.miss { background: rgba(255, 77, 77, 0.15);  color: var(--neg-color); }
+
+.pred-signals {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.pred-signal-pill {
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 2px 9px;
+  border-radius: 10px;
+  white-space: nowrap;
+}
+
+.pred-signal-pill.success { background: rgba(77, 255, 136, 0.12); color: var(--pos-color); }
+.pred-signal-pill.danger  { background: rgba(255, 77, 77, 0.12);  color: var(--neg-color); }
+.pred-signal-pill.neutral { background: rgba(160, 160, 160, 0.1); color: var(--text-dim); }
+
+.pred-scenario {
+  font-size: 0.68rem;
+  color: var(--text-dim);
+  line-height: 1.4;
+}
+
+.pred-metrics {
+  display: flex;
+  gap: 10px;
+  font-size: 0.63rem;
+  color: var(--text-dim);
+  font-family: 'Courier New', monospace;
+}
+
+/* ── 실제 결과 ── */
+.pred-actual {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.7rem;
+  padding-top: 4px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.pred-actual-label {
+  color: var(--text-dim);
+}
+
+.pred-actual-outcome {
+  font-weight: 700;
+}
+
+.pred-actual-outcome.pos { color: var(--pos-color); }
+.pred-actual-outcome.neg { color: var(--neg-color); }
+
+/* ── 실제 결과 입력 폼 ── */
+.pred-result-input {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding-top: 4px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  flex-wrap: wrap;
+}
+
+.pred-result-label {
+  font-size: 0.65rem;
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+
+.pred-select {
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: var(--text-main);
+  border-radius: 4px;
+  padding: 4px 6px;
+  font-size: 0.7rem;
+  cursor: pointer;
+}
+
+.pred-change-input {
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: var(--text-main);
+  border-radius: 4px;
+  padding: 4px 6px;
+  font-size: 0.7rem;
+  width: 80px;
+}
+
+.pred-change-input::placeholder {
+  color: var(--text-dim);
+  font-size: 0.65rem;
+}
+
+.pred-submit-btn {
+  background: var(--accent-secondary);
+  color: #000;
+  border: none;
+  border-radius: 4px;
+  padding: 4px 10px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.pred-submit-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+@media (max-width: 1024px) {
+  .pred-list {
+    grid-template-columns: 1fr;
+  }
+  .pred-trigger-bar {
+    padding: 10px 15px;
+    flex-wrap: wrap;
+  }
+}
