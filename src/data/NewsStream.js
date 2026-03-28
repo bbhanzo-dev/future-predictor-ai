@@ -115,35 +115,65 @@ export class NewsStream {
   }
 
   categorize(text) {
-    const t = text.toLowerCase();
-    if (t.includes("경제") || t.includes("금리") || t.includes("시장") || t.includes("환율") || 
-        t.includes("코스피") || t.includes("kospi") || t.includes("증시") || t.includes("지수")) return "금융";
-    if (t.includes("국정") || t.includes("정부") || t.includes("정치") || t.includes("전쟁")) return "지정학";
-    if (t.includes("사회") || t.includes("환경") || t.includes("시민")) return "사회";
-    if (t.includes("과학") || t.includes("기술") || t.includes("메타") || t.includes("AI")) return "과학";
+    // HTML 태그 제거 후 분류
+    const t = text.replace(/<[^>]*>/g, ' ').toLowerCase();
+
+    // 금융 — 주가·실적·시장 관련 키워드 대폭 확장
+    if (t.includes("경제") || t.includes("금리") || t.includes("시장") || t.includes("환율") ||
+        t.includes("코스피") || t.includes("kospi") || t.includes("증시") || t.includes("지수") ||
+        t.includes("주가") || t.includes("주식") || t.includes("실적") || t.includes("매출") ||
+        t.includes("영업이익") || t.includes("순이익") || t.includes("반도체") || t.includes("배터리") ||
+        t.includes("상장") || t.includes("etf") || t.includes("펀드") || t.includes("채권") ||
+        t.includes("투자") || t.includes("증권") || t.includes("코스닥") || t.includes("ipo")) return "금융";
+
+    // 지정학 — 정치·외교·안보 키워드
+    if (t.includes("국정") || t.includes("정부") || t.includes("정치") || t.includes("전쟁") ||
+        t.includes("외교") || t.includes("제재") || t.includes("무역") || t.includes("관세") ||
+        t.includes("분쟁") || t.includes("국방") || t.includes("안보") || t.includes("대통령")) return "지정학";
+
+    // 과학/기술
+    if (t.includes("과학") || t.includes("기술") || t.includes("메타") || t.includes("ai") ||
+        t.includes("인공지능") || t.includes("반도체") || t.includes("로봇") || t.includes("우주") ||
+        t.includes("특허") || t.includes("연구") || t.includes("개발")) return "과학";
+
+    // 사회
+    if (t.includes("사회") || t.includes("환경") || t.includes("시민") || t.includes("복지")) return "사회";
+
     return "사회";
   }
 
   async fetchStockNews(stockName) {
     try {
-      const feedUrl = `https://news.google.com/rss/search?q=${stockName}+주식&hl=ko&gl=KR&ceid=KR:ko`;
+      const feedUrl = `https://news.google.com/rss/search?q=${encodeURIComponent(stockName + ' 주식')}&hl=ko&gl=KR&ceid=KR:ko`;
       const res = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(feedUrl)}`);
       const data = await res.json();
-      if (!data.items || data.items.length === 0) return [];
-      const xFiltered = data.items.filter(item => {
-        const link = (item.link || item.guid || "").toLowerCase();
+
+      // API 오류 또는 빈 결과 처리
+      if (data.status !== 'ok' || !data.items || data.items.length === 0) {
+        console.warn(`종목 뉴스 없음 (${stockName}):`, data.message || 'no items');
+        return [];
+      }
+
+      const filtered = data.items.filter(item => {
+        const link   = (item.link || item.guid || "").toLowerCase();
         const source = (item.author || item.source || "").toLowerCase();
         if (link.includes("x.com") || link.includes("twitter.com")) return false;
         if (source.includes("x.com") || source.includes("twitter.com") || source === "x") return false;
         return true;
       });
-      return xFiltered.slice(0, 15).map(item => ({
-        title: item.title.replace(/ - Google 뉴스.*/, ''),
-        impact: analyzeSentiment(item.title + ' ' + (item.content || '')),
-        type: this.categorize(item.title + ' ' + (item.content || '')),
-        id: item.guid || Math.random().toString(36),
-        timestamp: new Date().toLocaleTimeString()
-      }));
+
+      return filtered.slice(0, 15).map(item => {
+        // " - 언론사명" 형태의 접미사를 모두 제거 (Google 뉴스, 한국경제, 조선일보 등)
+        const cleanTitle = (item.title || '').replace(/\s*-\s*[^-]+$/, '').trim();
+        const fullText   = cleanTitle + ' ' + (item.content || '');
+        return {
+          title:     cleanTitle,
+          impact:    analyzeSentiment(fullText),
+          type:      this.categorize(fullText),
+          id:        item.guid || Math.random().toString(36),
+          timestamp: new Date().toLocaleTimeString(),
+        };
+      });
     } catch (err) {
       console.error('종목 뉴스 수집 실패:', err);
       return [];
