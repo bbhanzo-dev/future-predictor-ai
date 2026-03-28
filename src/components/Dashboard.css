@@ -560,6 +560,195 @@
   padding: 6px 0;
 }
 
+/* ===== 섹터 특화 에이전트 분석 패널 ===== */
+.sector-analysis-panel {
+  margin: 10px 12px;
+  padding: 14px;
+  background: rgba(0, 242, 255, 0.04);
+  border: 1px solid rgba(0, 242, 255, 0.2);
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 420px;
+  overflow-y: auto;
+}
+
+.sector-analysis-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.sector-analysis-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sector-stock-name {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.sector-badge {
+  font-size: 0.6rem;
+  background: rgba(0, 242, 255, 0.15);
+  border: 1px solid rgba(0, 242, 255, 0.4);
+  color: var(--accent-secondary);
+  padding: 2px 7px;
+  border-radius: 10px;
+  white-space: nowrap;
+}
+
+.sector-stock-meta {
+  font-size: 0.62rem;
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+
+/* 컨센서스 바 */
+.consensus-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.consensus-bar.success {
+  background: rgba(77, 255, 136, 0.08);
+  border: 1px solid var(--pos-color);
+  color: var(--pos-color);
+}
+
+.consensus-bar.danger {
+  background: rgba(255, 77, 77, 0.08);
+  border: 1px solid var(--neg-color);
+  color: var(--neg-color);
+}
+
+.consensus-bar.neutral {
+  background: rgba(160, 160, 160, 0.08);
+  border: 1px solid var(--text-dim);
+  color: var(--text-main);
+}
+
+.consensus-label {
+  font-size: 0.6rem;
+  opacity: 0.7;
+  font-weight: 400;
+}
+
+.consensus-signal {
+  flex: 1;
+}
+
+.consensus-score {
+  font-family: 'Courier New', monospace;
+  font-size: 0.8rem;
+}
+
+.consensus-reason {
+  font-size: 0.68rem;
+  color: var(--text-dim);
+  line-height: 1.4;
+  padding: 0 2px;
+}
+
+/* 에이전트 개별 의견 */
+.agent-opinions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.agent-opinion-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.agent-opinion-card.primary {
+  border-color: rgba(125, 64, 255, 0.5);
+  background: rgba(125, 64, 255, 0.05);
+}
+
+.opinion-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.opinion-agent-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.primary-badge {
+  font-size: 0.55rem;
+  background: var(--accent-primary);
+  color: white;
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-weight: 700;
+}
+
+.opinion-role {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.opinion-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.opinion-verdict {
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+.opinion-verdict.success {
+  background: rgba(77, 255, 136, 0.12);
+  color: var(--pos-color);
+}
+
+.opinion-verdict.danger {
+  background: rgba(255, 77, 77, 0.12);
+  color: var(--neg-color);
+}
+
+.opinion-verdict.neutral {
+  background: rgba(160, 160, 160, 0.1);
+  color: var(--text-dim);
+}
+
+.opinion-confidence {
+  font-size: 0.62rem;
+  color: var(--text-dim);
+}
+
+.opinion-reasoning {
+  font-size: 0.68rem;
+  color: var(--text-dim);
+  line-height: 1.5;
+  margin: 0;
+}
+
 /* Mobile Responsiveness */
 @media (max-width: 1024px) {
   .dashboard-container {

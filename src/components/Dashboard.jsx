@@ -11,36 +11,14 @@ import { NewsStream } from '../data/NewsStream';
 import { STOCK_LIST } from '../data/StockList';
 import InvestmentRadarChart from './InvestmentRadarChart';
 import AIAssistant from './AIAssistant';
-
-// 종목 뉴스 기반 에이전트 심리 분석
-const getStockAnalysis = (stockNews) => {
-  if (!stockNews || stockNews.length === 0) return null;
-  const avgImpact = stockNews.reduce((sum, n) => sum + (n.impact || 0), 0) / stockNews.length;
-  const posCount = stockNews.filter(n => (n.impact || 0) > 0.02).length;
-  const negCount = stockNews.filter(n => (n.impact || 0) < -0.02).length;
-  let signal, signalType, reason;
-  if (avgImpact > 0.04) {
-    signal = '매수 추천';
-    signalType = 'success';
-    reason = `긍정 신호 ${posCount}건 감지 — 상승 모멘텀 포착`;
-  } else if (avgImpact < -0.04) {
-    signal = '매도 추천';
-    signalType = 'danger';
-    reason = `부정 신호 ${negCount}건 감지 — 하방 리스크 주의`;
-  } else {
-    signal = '관망 추천';
-    signalType = 'neutral';
-    reason = `혼조 신호 (긍정 ${posCount} / 부정 ${negCount}) — 추세 확인 필요`;
-  }
-  return { signal, signalType, reason, avgImpact, posCount, negCount };
-};
+import { analyzeStockByAgents } from '../engine/StockAgentAnalyzer';
 
 const Dashboard = () => {
   const [world, setWorld] = useState(null);
   const [news, setNews] = useState([]);
   const [isSimulating, setIsSimulating] = useState(false);
   const [tick, setTick] = useState(0);
-  const [version] = useState("v2.0.0"); // Agent Roles + Confidence Upgrade
+  const [version] = useState("v2.1.0"); // Sector Agent Analysis
 
   // 종목 검색 상태
   const [stockQuery, setStockQuery] = useState('');
@@ -148,7 +126,9 @@ const Dashboard = () => {
     setStockAnalysis(null);
     const fetchedNews = await newsStreamRef.current.fetchStockNews(stock.name);
     setStockNews(fetchedNews);
-    setStockAnalysis(getStockAnalysis(fetchedNews));
+    if (worldRef.current) {
+      setStockAnalysis(analyzeStockByAgents(worldRef.current.agents, stock, fetchedNews));
+    }
     setIsLoadingStock(false);
   };
 
@@ -345,27 +325,51 @@ const Dashboard = () => {
             )}
           </div>
 
-          {/* 종목 에이전트 심리 분석 */}
+          {/* 섹터 특화 에이전트 분석 패널 */}
           {selectedStock && (
-            <div className="stock-analysis-card">
-              <div className="stock-analysis-title">
-                <span>{selectedStock.name}</span>
-                <span className="stock-analysis-market">{selectedStock.market} · {selectedStock.code}</span>
+            <div className="sector-analysis-panel">
+              <div className="sector-analysis-header">
+                <div className="sector-analysis-title">
+                  <span className="sector-stock-name">{selectedStock.name}</span>
+                  <span className="sector-badge">
+                    {isLoadingStock ? '분석 중...' : (stockAnalysis?.sectorLabel || '기타')}
+                  </span>
+                </div>
+                <span className="sector-stock-meta">{selectedStock.market} · {selectedStock.code}</span>
               </div>
+
               {isLoadingStock ? (
-                <div className="stock-analysis-loading">에이전트 심리 분석 중...</div>
+                <div className="stock-analysis-loading">섹터 담당 에이전트 집중 분석 중...</div>
               ) : stockAnalysis ? (
                 <>
-                  <div className={`stock-signal-badge ${stockAnalysis.signalType}`}>
-                    {stockAnalysis.signal}
+                  {/* 컨센서스 */}
+                  <div className={`consensus-bar ${stockAnalysis.consensus.signalType}`}>
+                    <span className="consensus-label">에이전트 컨센서스</span>
+                    <span className="consensus-signal">{stockAnalysis.consensus.signal}</span>
+                    <span className="consensus-score">
+                      {stockAnalysis.consensus.score >= 0 ? '+' : ''}
+                      {(stockAnalysis.consensus.score * 100).toFixed(1)}%
+                    </span>
                   </div>
-                  <div className="stock-analysis-reason">{stockAnalysis.reason}</div>
-                  <div className="stock-analysis-stats">
-                    <span>긍정 뉴스 <b className="pos">{stockAnalysis.posCount}</b>건</span>
-                    <span>부정 뉴스 <b className="neg">{stockAnalysis.negCount}</b>건</span>
-                    <span>평균 영향력 <b className={(stockAnalysis.avgImpact || 0) >= 0 ? 'pos' : 'neg'}>
-                      {((stockAnalysis.avgImpact || 0) * 100).toFixed(1)}%
-                    </b></span>
+                  <div className="consensus-reason">{stockAnalysis.consensus.reason}</div>
+
+                  {/* 에이전트별 개별 의견 */}
+                  <div className="agent-opinions">
+                    {stockAnalysis.agentAnalyses.map((a) => (
+                      <div key={a.agentId} className={`agent-opinion-card ${a.isPrimary ? 'primary' : ''}`}>
+                        <div className="opinion-header">
+                          <div className="opinion-agent-info">
+                            {a.isPrimary && <span className="primary-badge">주담당</span>}
+                            <span className="opinion-role">{a.roleLabel}</span>
+                          </div>
+                          <div className="opinion-right">
+                            <span className={`opinion-verdict ${a.verdictType}`}>{a.verdict}</span>
+                            <span className="opinion-confidence">신뢰도 {a.confidence}%</span>
+                          </div>
+                        </div>
+                        <p className="opinion-reasoning">{a.reasoning}</p>
+                      </div>
+                    ))}
                   </div>
                 </>
               ) : (
