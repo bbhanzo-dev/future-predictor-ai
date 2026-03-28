@@ -1,4 +1,4 @@
-import { Agent } from './Agent';
+import { Agent, AGENT_ROLE_PRESETS } from './Agent';
 
 export class World {
   constructor(populationSize = 100) {
@@ -13,7 +13,12 @@ export class World {
 
   init() {
     for (let i = 0; i < this.populationSize; i++) {
+      const roleConfig = AGENT_ROLE_PRESETS.find(r => r.id === i) || null;
+      if (roleConfig) {
+        this.agents.push(new Agent(i, roleConfig.traits, roleConfig));
+      } else {
         this.agents.push(new Agent(i));
+      }
     }
   }
 

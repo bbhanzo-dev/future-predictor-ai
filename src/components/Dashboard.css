@@ -278,6 +278,19 @@
   font-size: 0.8rem;
 }
 
+.agent-name-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.agent-id-badge {
+  font-size: 0.6rem;
+  color: var(--accent-secondary);
+  opacity: 0.6;
+  font-family: 'Courier New', monospace;
+}
+
 .agent-mood { font-size: 0.7rem; }
 .agent-mood.happy { color: var(--pos-color); }
 .agent-mood.sad { color: var(--neg-color); }

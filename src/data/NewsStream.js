@@ -12,21 +12,44 @@ const RSS_FEEDS = [
   "https://news.google.com/rss/search?q=%EC%BD%94%EC%8A%A4%ED%94%BC&hl=ko&gl=KR&ceid=KR:ko" // 코스피 (Korean Search)
 ];
 
-// Simple keyword-based sentiment analyzer for Korean
+/**
+ * Keyword-based Korean financial sentiment analyzer.
+ * High-weight keywords (±0.12) for major market-moving words,
+ * medium-weight (±0.06) for general positive/negative signals.
+ * Cap: ±0.35 to allow meaningful non-zero impact on most news.
+ */
 const analyzeSentiment = (text) => {
-  const positive = ["상승", "성장", "돌파", "성공", "체결", "협력", "낙관", "급등", "도약", "안정"];
-  const negative = ["하락", "갈등", "위기", "폭락", "패닉", "침체", "감소", "둔화", "분쟁", "전쟁", "대립"];
+  // Strip HTML tags, normalize to lowercase
+  const clean = text.replace(/<[^>]*>/g, ' ').toLowerCase();
+
+  const POSITIVE_HIGH = [
+    "급등", "폭등", "사상 최고", "최고가", "신고가", "대폭 상승", "어닝 서프라이즈",
+    "강세 전환", "급반등", "돌파 성공", "수출 급증", "흑자 전환", "대규모 수주",
+  ];
+  const POSITIVE_MED = [
+    "상승", "성장", "돌파", "성공", "체결", "협력", "낙관", "도약", "안정", "회복",
+    "개선", "확대", "증가", "호조", "흑자", "수주", "투자 확대", "실적 개선",
+    "반등", "강세", "호재", "상향", "수혜", "매수", "기대감", "훈풍", "상향 조정",
+    "견조", "양호", "긍정적", "선방", "역대 최대", "최대 실적",
+  ];
+  const NEGATIVE_HIGH = [
+    "폭락", "급락", "패닉", "파산", "디폴트", "붕괴", "쇼크", "대폭 하락",
+    "위기 심화", "대규모 적자", "긴급 구제", "시장 붕괴", "뱅크런",
+  ];
+  const NEGATIVE_MED = [
+    "하락", "갈등", "위기", "침체", "감소", "둔화", "분쟁", "전쟁", "대립",
+    "제재", "악화", "적자", "손실", "부진", "우려", "경고", "긴축", "불안",
+    "약세", "리스크", "급감", "충격", "불확실", "경기 하강", "매도", "투매",
+    "손실 확대", "부도", "경기 침체", "물가 급등", "금리 인상", "역성장",
+  ];
 
   let score = 0;
-  
-  positive.forEach(word => {
-    if (text.includes(word)) score += 0.05;
-  });
-  negative.forEach(word => {
-    if (text.includes(word)) score -= 0.05;
-  });
+  POSITIVE_HIGH.forEach(w => { if (clean.includes(w)) score += 0.12; });
+  POSITIVE_MED.forEach(w => { if (clean.includes(w)) score += 0.06; });
+  NEGATIVE_HIGH.forEach(w => { if (clean.includes(w)) score -= 0.12; });
+  NEGATIVE_MED.forEach(w => { if (clean.includes(w)) score -= 0.06; });
 
-  return Math.max(-0.2, Math.min(0.2, score));
+  return Math.max(-0.35, Math.min(0.35, score));
 };
 
 export class NewsStream {
@@ -60,7 +83,15 @@ export class NewsStream {
         
         let filteredItems = allItems.filter(item => {
           const text = (item.title + " " + (item.content || "")).toLowerCase();
-          return !filterKeywords.some(keyword => text.includes(keyword));
+          if (filterKeywords.some(keyword => text.includes(keyword))) return false;
+
+          // X(트위터) 출처 뉴스 차단
+          const link = (item.link || item.guid || "").toLowerCase();
+          const source = (item.author || item.source || "").toLowerCase();
+          if (link.includes("x.com") || link.includes("twitter.com")) return false;
+          if (source.includes("x.com") || source.includes("twitter.com") || source === "x") return false;
+
+          return true;
         });
 
         // 셔플하여 특정 피드에 안 쏠리게 조정
@@ -99,7 +130,14 @@ export class NewsStream {
       const res = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(feedUrl)}`);
       const data = await res.json();
       if (!data.items || data.items.length === 0) return [];
-      return data.items.slice(0, 15).map(item => ({
+      const xFiltered = data.items.filter(item => {
+        const link = (item.link || item.guid || "").toLowerCase();
+        const source = (item.author || item.source || "").toLowerCase();
+        if (link.includes("x.com") || link.includes("twitter.com")) return false;
+        if (source.includes("x.com") || source.includes("twitter.com") || source === "x") return false;
+        return true;
+      });
+      return xFiltered.slice(0, 15).map(item => ({
         title: item.title.replace(/ - Google 뉴스.*/, ''),
         impact: analyzeSentiment(item.title + ' ' + (item.content || '')),
         type: this.categorize(item.title + ' ' + (item.content || '')),

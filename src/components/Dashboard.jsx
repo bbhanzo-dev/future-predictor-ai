@@ -40,7 +40,7 @@ const Dashboard = () => {
   const [news, setNews] = useState([]);
   const [isSimulating, setIsSimulating] = useState(false);
   const [tick, setTick] = useState(0);
-  const [version] = useState("v1.3.0"); // Investment Radar Update
+  const [version] = useState("v2.0.0"); // Agent Roles + Confidence Upgrade
 
   // 종목 검색 상태
   const [stockQuery, setStockQuery] = useState('');
@@ -375,17 +375,23 @@ const Dashboard = () => {
           )}
 
           <div className="agent-list">
-            {world.agents.slice(0, 10).map(agent => (
-              <div key={agent.id} className="agent-card">
-                <div className="agent-info">
-                  <span className="agent-name">에이전트 {agent.id}</span>
-                  <span className={`agent-mood ${agent.state.sentiment > 0.6 ? 'happy' : agent.state.sentiment < 0.4 ? 'sad' : ''}`}>
-                    신뢰도: {(agent.state.sentiment * 100).toFixed(0)}%
-                  </span>
+            {world.agents.slice(0, 10).map(agent => {
+              const confidence = agent.getConfidence();
+              return (
+                <div key={agent.id} className="agent-card">
+                  <div className="agent-info">
+                    <div className="agent-name-wrap">
+                      <span className="agent-name">{agent.roleLabel || `에이전트 ${agent.id}`}</span>
+                      <span className="agent-id-badge">#{agent.id}</span>
+                    </div>
+                    <span className={`agent-mood ${confidence >= 65 ? 'happy' : confidence <= 35 ? 'sad' : ''}`}>
+                      신뢰도: {confidence}%
+                    </span>
+                  </div>
+                  <div className="agent-action">{agent.state.lastAction}</div>
                 </div>
-                <div className="agent-action">{agent.state.lastAction}</div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </section>
       </main>
